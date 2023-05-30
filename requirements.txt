@@ -1,0 +1,8 @@
+flask
+requests
+Pillow
+numpy
+tensorflow
+opencv-python
+scikit-learn
+gunicorn
