@@ -6,4 +6,3 @@ tensorflow
 opencv-python
 scikit-learn
 gunicorn
-cv2
