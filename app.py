@@ -1,4 +1,6 @@
 import os
+
+import PIL
 from flask import Flask, request, jsonify
 import requests
 import numpy as np
@@ -6,18 +8,23 @@ from PIL import Image
 from io import BytesIO
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/predict": {"origins": "*"}})
+
 def load_image_from_url(url, size=(128, 128)):
     response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
+    try:
+        img = Image.open(BytesIO(response.content))
+    except PIL.UnidentifiedImageError:
+        raise ValueError("The URL you provided does not point to a valid image.")
     img = img.convert('RGB')
     img = img.resize(size)
     img = np.array(img) / 255.0
     img = np.expand_dims(img, axis=0)
     return img
+
 
 def predict(model, img, encoder):
     prediction = np.argmax(model.predict(img), axis=-1)
@@ -30,7 +37,7 @@ modelo = load_model(modelo_guardado)
 encoder_classes = np.load(archivo_encoder, allow_pickle=True)
 encoder = LabelEncoder()
 encoder.classes_ = encoder_classes
-@cross_origin()
+
 @app.route('/predict', methods=['POST'])
 def predict_route():
     data = request.get_json(force=True)
